@@ -14,79 +14,150 @@ function createEmployeeRecord(array) {
 
 createEmployeeRecord(['Gray', 'Worm', 'Security', 1])
 
+function createEmployeeRecords(arrayOfArrays) {
+  const records = [];
+  
+  for (let i = 0; i < arrayOfArrays.length; i++) {
+    const currentRecord = {};
+    currentRecord.firstName = arrayOfArrays[i][0];
+    currentRecord.familyName = arrayOfArrays[i][1];
+    currentRecord.title = arrayOfArrays[i][2];
+    currentRecord.payPerHour = arrayOfArrays[i][3];
+    currentRecord.timeInEvents = [];
+    currentRecord.timeOutEvents = [];
+    records.push(currentRecord);
+  }
+  return records;
+}
 
-// The payroll system
-//     populates a record from an Array
-//       1) has a function called createEmployeeRecord
-//       createEmployeeRecord
-//         2) populates a firstName field from the 0th element
-//         3) populates a familyName field from the 1th element
-//         4) populates a title field from the 2th element
-//         5) populates a payPerHour field from the 3th element
-//         6) initializes a field, timeInEvents, to hold an empty Array
-//         7) initializes a field, timeOutEvents, to hold an empty Array
-//     process an Array of Arrays into an Array of employee records
+createEmployeeRecords([
+  ["moe", "sizlak", "barkeep", 2],
+  ["bartholomew", "simpson", "scamp", 3]
+]);
+
+function createTimeInEvent(record, timeIn) {
+  const timeInArray = timeIn.split(' ');
+  const date = timeInArray[0];
+  const hour = parseInt(timeInArray[1]);
+  const newEvent = {};
+  newEvent.type = "TimeIn";
+  newEvent.date = date;
+  newEvent.hour = hour;
+  record.timeInEvents.push(newEvent);
+  return record;
+}
+
+createTimeInEvent(createEmployeeRecord(['Gray', 'Worm', 'Security', 1]), "2014-02-28 1400");
+
+function createTimeOutEvent(record, timeOut) {
+  const timeOutArray = timeOut.split(' ');
+  const date = timeOutArray[0];
+  const hour = parseInt(timeOutArray[1]);
+  const newEvent = {};
+  newEvent.type = "TimeOut";
+  newEvent.date = date;
+  newEvent.hour = hour;
+  record.timeOutEvents.push(newEvent);
+  return record;
+}
+
+createTimeOutEvent(createEmployeeRecord(['Gray', 'Worm', 'Security', 1]), "2015-02-28 1700")
+
+function hoursWorkedOnDate (record, date) {
+  // createTimeInEvent(record, "0044-03-15 0900")
+  // createTimeOutEvent(record, "0044-03-15 1100")
+
+  const timeInObject =  record.timeInEvents.find(element => element.date === date);
+  const timeOutObject = record.timeOutEvents.find(element => element.date === date);
+
+  const hoursWorked = (timeOutObject.hour - timeInObject.hour) / 100;
+  return hoursWorked;
+
+//   if (record.timeInEvents[0].date === date && record.timeOutEvents[0].date === date) {
+//     const hoursWorked = (record.timeOutEvents[0].hour - record.timeInEvents[0].hour) / 100;
+//     return hoursWorked;
+//   }
+}
+
+// hoursWorkedOnDate(createEmployeeRecord(["Julius", "Caesar", "General", 1000]), "0044-03-15")
+
+function wagesEarnedOnDate(record, date) {
+  // createTimeInEvent(record, "0044-03-15 0900");
+  // createTimeOutEvent(record, "0044-03-15 1100");
+
+  const hoursWorked = hoursWorkedOnDate(record, date);
+  const payPerHour = record.payPerHour;
+  return hoursWorked * payPerHour;
+}
+
+// wagesEarnedOnDate(createEmployeeRecord(["Julius", "Caesar", "General", 27]), "0044-03-15")
+
+function allWagesFor(record) {
+  // createTimeInEvent(record, "0044-03-14 0900");
+  // createTimeOutEvent(record, "0044-03-14 2100");
+
+  // createTimeInEvent(record, "0044-03-15 0900");
+  // createTimeOutEvent(record, "0044-03-15 1100");
+
+  const dateArray = record.timeInEvents.map(object => object.date);
+
+  const payArray = dateArray.map(date => {
+    let temp = wagesEarnedOnDate(record, date)
+    return temp;
+  });
+
+  let totalPay = 0;
+
+  payArray.forEach(pay => {
+    totalPay += pay;
+  })
+
+  return totalPay;
+}
+
+allWagesFor(createEmployeeRecord(["Julius", "Caesar", "General", 27]))
+
+function calculatePayroll(array) {
+  // takes in an array of employees
+  let totalWages = [];
+  array.forEach(function (e) {
+    let record = e;
+    totalWages.push(allWagesFor(e));
+  })
+  let finalWages = totalWages.reduce((a, e) => a + e, 0)
+
+  return finalWages;
+
+}
+
+let rRecord = createEmployeeRecord(["Rafiki", "", "Aide", 10]);
+let sRecord = createEmployeeRecord(["Simba", "", "King", 100])
+let sTimeData = [
+  ["2019-01-01 0900", "2019-01-01 1300"], // 4 * 100 = 400
+  ["2019-01-02 1000", "2019-01-02 1300"]  // 3 * 100 = 300 ===> 700 total
+]
+let rTimeData = [
+  ["2019-01-11 0900", "2019-01-11 1300"], // 4 * 10 = 40
+  ["2019-01-12 1000", "2019-01-12 1300"]  // 3 * 10 = 40 ===> 70 total ||=> 770
+]
+sTimeData.forEach(function (d) {
+  let [dIn, dOut] = d;
+  sRecord = createTimeInEvent(sRecord, dIn);
+  sRecord = createTimeOutEvent(sRecord, dOut);
+})
+rTimeData.forEach(function (d) {
+  let [dIn, dOut] = d;
+  rRecord = createTimeInEvent(rRecord, dIn);
+  rRecord = createTimeOutEvent(rRecord, dOut);
+})
+let employees = [sRecord, rRecord];
+console.log(calculatePayroll(employees))
 
 
-//   6) The payroll system
-//        populates a record from an Array
-//          createEmployeeRecord
-//            initializes a field, timeInEvents, to hold an empty Array:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:29:28)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   7) The payroll system
-//        populates a record from an Array
-//          createEmployeeRecord
-//            initializes a field, timeOutEvents, to hold an empty Array:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:34:28)
-//       at processImmediate (node:internal/timers:464:21)
-
-
-
-
-
-
-//       8) has a function called createEmployeeRecords
-//       createEmployeeRecords
-//         9) creates two records
-//         10) correctly assigns the first names
-//         11) creates more than 2 records
-//     it adds a timeIn event Object to an employee's record of timeInEvents when provided an employee record and Date/Time String and returns the updated record
-//       12) has a function called createTimeInEvent
-//       createTimeInEvent
-//         13) creates the correct type
-//         14) extracts the correct date
-//         15) extracts the correct hour
-//     it adds a timeOut event Object to an employee's record of timeOutEvents when provided an employee record and Date/Time String and returns the updated record
-//       16) has a function called createTimeOutEvent
-//       createTimeOutEvent
-//         17) creates the correct type
-//         18) extracts the correct date
-//         19) extracts the correct hour
-//     Given an employee record with a date-matched timeInEvent and timeOutEvent
-//       20) hoursWorkedOnDate calculates the hours worked when given an employee record and a date
-//       hoursWorkedOnDate
-//         21) calculates that the employee worked 2 hours
-//     Given an employee record with a date-matched timeInEvent and timeOutEvent
-//       22) wagesEarnedOnDate multiplies the hours worked by the employee's rate per hour
-//       wagesEarnedOnDate
-//         23) calculates that the employee earned 54 dollars
-//     Given an employee record with MULTIPLE date-matched timeInEvent and timeOutEvent
-//       24) allWagesFor aggregates all the dates' wages and adds them together
-//       allWagesFor
-//         25) calculates that the employee earned 378 dollars
 //     Given an array of multiple employees
 //       26) calculatePayroll aggregates all the dates' wages and adds them together
 //       calculatePayroll
 //         27) calculates that the employees earned 770 dollars
-//     runs payroll using the mock data provided by Ultron data systems
-//       Dependent functions: createEmployeeRecords
-//         takes CSV data, returns an array of employee records
-//           28) exists
-//           29) returns an Array with 2 records for Loki and Natalia
 //       Full Payroll Test
 //         from several imported CSV structures
 //           calculatePayroll
@@ -94,155 +165,41 @@ createEmployeeRecord(['Gray', 'Worm', 'Security', 1])
 //             31) correctly sums the payroll burden to $11,880 when passed an array of employee records
 
 
-//   0 passing (168ms)
-//   31 failing
+//   describe("calculatePayroll", function () {
+//     it("calculates that the employees earned 770 dollars", function () {
+//       let rRecord = createEmployeeRecord(["Rafiki", "", "Aide", 10])
+//       let sRecord = createEmployeeRecord(["Simba", "", "King", 100])
+
+//       let sTimeData = [
+//         ["2019-01-01 0900", "2019-01-01 1300"], // 4 * 100 = 400
+//         ["2019-01-02 1000", "2019-01-02 1300"]  // 3 * 100 = 300 ===> 700 total
+//       ]
+
+//       let rTimeData = [
+//         ["2019-01-11 0900", "2019-01-11 1300"], // 4 * 10 = 40
+//         ["2019-01-12 1000", "2019-01-12 1300"]  // 3 * 10 = 40 ===> 70 total ||=> 770
+//       ]
+
+//       sTimeData.forEach(function (d) {
+//         let [dIn, dOut] = d
+//         sRecord = createTimeInEvent(sRecord, dIn)
+//         sRecord = createTimeOutEvent(sRecord, dOut)
+//       })
+
+//       rTimeData.forEach(function (d, i) {
+//         let [dIn, dOut] = d
+//         rRecord = createTimeInEvent(rRecord, dIn)
+//         rRecord = createTimeOutEvent(rRecord, dOut)
+//       })
+
+//       let employees = [sRecord, rRecord]
+//       let grandTotalOwed = employees.reduce((m, e) => m + allWagesFor(e), 0)
+//       expect(grandTotalOwed).to.equal(calculatePayroll(employees))
+//     })
+//   })
+// })
 
 
-
-//   8) The payroll system
-//        process an Array of Arrays into an Array of employee records
-//          has a function called createEmployeeRecords:
-//      ReferenceError: createEmployeeRecords is not defined
-//       at Context.<anonymous> (test/indexTest.js:42:14)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   9) The payroll system
-//        process an Array of Arrays into an Array of employee records
-//          createEmployeeRecords
-//            creates two records:
-//      ReferenceError: createEmployeeRecords is not defined
-//       at Context.<anonymous> (test/indexTest.js:54:31)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   10) The payroll system
-//        process an Array of Arrays into an Array of employee records
-//          createEmployeeRecords
-//            correctly assigns the first names:
-//      ReferenceError: createEmployeeRecords is not defined
-//       at Context.<anonymous> (test/indexTest.js:59:31)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   11) The payroll system
-//        process an Array of Arrays into an Array of employee records
-//          createEmployeeRecords
-//            creates more than 2 records:
-//      ReferenceError: createEmployeeRecords is not defined
-//       at Context.<anonymous> (test/indexTest.js:77:31)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   12) The payroll system
-//        it adds a timeIn event Object to an employee's record of timeInEvents when provided an employee record and Date/Time String and returns the updated record
-//          has a function called createTimeInEvent:
-//      ReferenceError: createTimeInEvent is not defined
-//       at Context.<anonymous> (test/indexTest.js:88:14)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   13) The payroll system
-//        it adds a timeIn event Object to an employee's record of timeInEvents when provided an employee record and Date/Time String and returns the updated record
-//          createTimeInEvent
-//            creates the correct type:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:95:24)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   14) The payroll system
-//        it adds a timeIn event Object to an employee's record of timeInEvents when provided an employee record and Date/Time String and returns the updated record
-//          createTimeInEvent
-//            extracts the correct date:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:102:24)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   15) The payroll system
-//        it adds a timeIn event Object to an employee's record of timeInEvents when provided an employee record and Date/Time String and returns the updated record
-//          createTimeInEvent
-//            extracts the correct hour:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:109:24)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   16) The payroll system
-//        it adds a timeOut event Object to an employee's record of timeOutEvents when provided an employee record and Date/Time String and returns the updated record
-//          has a function called createTimeOutEvent:
-//      ReferenceError: createTimeOutEvent is not defined
-//       at Context.<anonymous> (test/indexTest.js:120:14)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   17) The payroll system
-//        it adds a timeOut event Object to an employee's record of timeOutEvents when provided an employee record and Date/Time String and returns the updated record
-//          createTimeOutEvent
-//            creates the correct type:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:127:24)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   18) The payroll system
-//        it adds a timeOut event Object to an employee's record of timeOutEvents when provided an employee record and Date/Time String and returns the updated record
-//          createTimeOutEvent
-//            extracts the correct date:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:134:24)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   19) The payroll system
-//        it adds a timeOut event Object to an employee's record of timeOutEvents when provided an employee record and Date/Time String and returns the updated record
-//          createTimeOutEvent
-//            extracts the correct hour:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:141:24)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   20) The payroll system
-//        Given an employee record with a date-matched timeInEvent and timeOutEvent
-//          hoursWorkedOnDate calculates the hours worked when given an employee record and a date:
-//      ReferenceError: hoursWorkedOnDate is not defined
-//       at Context.<anonymous> (test/indexTest.js:152:14)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   21) The payroll system
-//        Given an employee record with a date-matched timeInEvent and timeOutEvent
-//          hoursWorkedOnDate
-//            calculates that the employee worked 2 hours:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:157:9)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   22) The payroll system
-//        Given an employee record with a date-matched timeInEvent and timeOutEvent
-//          wagesEarnedOnDate multiplies the hours worked by the employee's rate per hour:
-//      ReferenceError: wagesEarnedOnDate is not defined
-//       at Context.<anonymous> (test/indexTest.js:168:14)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   23) The payroll system
-//        Given an employee record with a date-matched timeInEvent and timeOutEvent
-//          wagesEarnedOnDate
-//            calculates that the employee earned 54 dollars:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:173:9)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   24) The payroll system
-//        Given an employee record with MULTIPLE date-matched timeInEvent and timeOutEvent
-//          allWagesFor aggregates all the dates' wages and adds them together:
-//      ReferenceError: allWagesFor is not defined
-//       at Context.<anonymous> (test/indexTest.js:184:14)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   25) The payroll system
-//        Given an employee record with MULTIPLE date-matched timeInEvent and timeOutEvent
-//          allWagesFor
-//            calculates that the employee earned 378 dollars:
-//      ReferenceError: createEmployeeRecord is not defined
-//       at Context.<anonymous> (test/indexTest.js:189:9)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   26) The payroll system
-//        Given an array of multiple employees
-//          calculatePayroll aggregates all the dates' wages and adds them together:
-//      ReferenceError: calculatePayroll is not defined
-//       at Context.<anonymous> (test/indexTest.js:204:14)
-//       at processImmediate (node:internal/timers:464:21)
 
 //   27) The payroll system
 //        Given an array of multiple employees
@@ -252,33 +209,6 @@ createEmployeeRecord(['Gray', 'Worm', 'Security', 1])
 //       at Context.<anonymous> (test/indexTest.js:209:23)
 //       at processImmediate (node:internal/timers:464:21)
 
-//   28) The payroll system
-//        runs payroll using the mock data provided by Ultron data systems
-//          Dependent functions: createEmployeeRecords
-//            takes CSV data, returns an array of employee records
-//              exists:
-//      ReferenceError: createEmployeeRecords is not defined
-//       at Context.<anonymous> (test/indexTest.js:245:18)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   29) The payroll system
-//        runs payroll using the mock data provided by Ultron data systems
-//          Dependent functions: createEmployeeRecords
-//            takes CSV data, returns an array of employee records
-//              returns an Array with 2 records for Loki and Natalia:
-//      ReferenceError: createEmployeeRecords is not defined
-//       at Context.<anonymous> (test/indexTest.js:253:11)
-//       at processImmediate (node:internal/timers:464:21)
-
-//   30) The payroll system
-//        runs payroll using the mock data provided by Ultron data systems
-//          Full Payroll Test
-//            from several imported CSV structures
-//              calculatePayroll
-//                exists:
-//      ReferenceError: calculatePayroll is not defined
-//       at Context.<anonymous> (test/indexTest.js:299:20)
-//       at processImmediate (node:internal/timers:464:21)
 
 //   31) The payroll system
 //        runs payroll using the mock data provided by Ultron data systems
